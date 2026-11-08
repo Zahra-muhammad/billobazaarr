@@ -1,26 +1,694 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+/* ─────────────────────────────────────────────────────────────────────────────
+   BILLO BAZAAR · DESIGN TOKENS
+   Only brand colours exist. Tailwind's default palette is switched off so
+   nothing off-brand can sneak in.
+   Contrast notes (WCAG):
+   • heritage #BB2823 on beige = 4.7:1 → OK for body text. On sand it is not.
+   • heritage-alt #C0383B on beige = 4.2:1 → large text / decoration only.
+   • mustard on beige fails → mustard is only used on maroon/ink/indigo.
+   • beige on maroon = 10:1, mustard on maroon = 6:1.
+   ───────────────────────────────────────────────────────────────────────── */
+@theme {
+  --color-*: initial;
+  --color-maroon: #630e13;
+  --color-maroon-deep: #4c0a0e;
+  --color-heritage: #bb2823;
+  --color-heritage-alt: #c0383b;
+  --color-olive: #5b6435;
+  --color-olive-deep: #205d2e;
+  --color-mustard: #daa663;
+  --color-indigo: #214276;
+  --color-beige: #eae2cc;
+  --color-sand: #d8c7ad;
+  --color-offwhite: #f6f2ea;
+  --color-ink: #1a1414;
+  --color-ink-soft: #4a3f3c;
+
+  /* Fluid editorial type scale */
+  --text-display-2xl: clamp(3.1rem, 9.6vw, 11rem);
+  --text-display-2xl--line-height: 0.88;
+  --text-display-2xl--letter-spacing: -0.035em;
+  --text-display-xl: clamp(2.7rem, 7vw, 8rem);
+  --text-display-xl--line-height: 0.92;
+  --text-display-xl--letter-spacing: -0.03em;
+  --text-display-lg: clamp(2.3rem, 5vw, 5.5rem);
+  --text-display-lg--line-height: 0.95;
+  --text-display-lg--letter-spacing: -0.025em;
+  --text-display-md: clamp(1.9rem, 3.3vw, 3.4rem);
+  --text-display-md--line-height: 1;
+  --text-display-md--letter-spacing: -0.02em;
+  --text-display-sm: clamp(1.55rem, 2.1vw, 2.2rem);
+  --text-display-sm--line-height: 1.05;
+  --text-display-sm--letter-spacing: -0.015em;
+  --text-lead: clamp(1.0625rem, 1.25vw, 1.3rem);
+  --text-lead--line-height: 1.5;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.3;
+  --text-label--letter-spacing: 0.14em;
+
+  /* Motion */
+  --ease-editorial: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-silk: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-cine: cubic-bezier(0.76, 0, 0.24, 1);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-instrument), "Iowan Old Style", "Times New Roman", serif;
+  --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, "SFMono-Regular", monospace;
+  --font-urdu: var(--font-nastaliq), "Noto Nastaliq Urdu", "Jameel Noori Nastaleeq", serif;
+  --font-poster: var(--font-archivo), "Arial Narrow", Impact, sans-serif;
+  --font-urdu-intro: var(--font-nastaliq-intro), var(--font-nastaliq), serif;
+  --font-urdu-fallback: "Jameel Noori Nastaleeq", "Noto Naskh Arabic", "Segoe UI", Tahoma, serif;
 }
 
-@media (prefers-color-scheme: dark) {
+/* ── Base ─────────────────────────────────────────────────────────────────── */
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --gutter: clamp(1.25rem, 4.2vw, 3.5rem);
+    --gap: clamp(0.75rem, 1.7vw, 1.5rem);
+    --nav-h: 4.5rem;
+    color-scheme: light;
+  }
+
+  /* Sections carry their own top padding, so anchors land flush (no scroll-padding). */
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    background-color: var(--color-beige);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    text-rendering: optimizeLegibility;
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--color-maroon);
+    color: var(--color-beige);
+  }
+  [data-theme="dark"] ::selection {
+    background: var(--color-mustard);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-heritage);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+  [data-theme="dark"] :focus-visible {
+    outline-color: var(--color-mustard);
+  }
+
+  /* Urdu: a system Arabic font until the Nastaliq webfont is switched on after
+     page load (MotionProviders injects a rule using var(--font-urdu)). */
+  [lang="ur"] {
+    font-family: var(--font-urdu-fallback);
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* ── Layout utilities: one 12-column grid everywhere ──────────────────────── */
+@utility shell {
+  width: 100%;
+  max-width: 1600px;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+@utility grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  column-gap: var(--gap);
+}
+@utility section-y {
+  padding-block: clamp(5.5rem, 11vw, 10.5rem);
+}
+@utility eyebrow {
+  font-family: var(--font-mono);
+  font-size: var(--text-label);
+  line-height: var(--text-label--line-height);
+  letter-spacing: var(--text-label--letter-spacing);
+  text-transform: uppercase;
+}
+/* Warm, slightly desaturated grade so mixed placeholder photos sit together. */
+@utility grade {
+  filter: saturate(0.8) sepia(0.12) contrast(1.04) brightness(0.98);
+}
+/* Nastaliq accent words (webfont applied after page load) */
+@utility urdu {
+  font-family: var(--font-urdu-fallback);
+  line-height: 2;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+/* ── Paper / fabric grain ─────────────────────────────────────────────────
+   One fixed, non-interactive layer. No blend modes, so it costs almost
+   nothing to composite. */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.55'/%3E%3C/svg%3E");
+  opacity: 0.09;
+  will-change: transform;
+}
+
+/* ── Custom cursor (desktop only; enabled from JS) ───────────────────────── */
+.has-cursor,
+.has-cursor * {
+  cursor: none !important;
+}
+.has-cursor input,
+.has-cursor textarea {
+  cursor: text !important;
+}
+.has-cursor select {
+  cursor: auto !important;
+}
+
+/* ── Smooth scrolling ──────────────────────────────────────────────────────
+   Desktop: Lenis (adds .lenis to <html>). Touch / no Lenis: native smooth
+   scrolling for anchor links. */
+@media (prefers-reduced-motion: no-preference) {
+  html:not(.lenis) {
+    scroll-behavior: smooth;
+  }
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis:not(.lenis-autoToggle).lenis-stopped {
+  overflow: clip;
+}
+.lenis [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+.lenis.lenis-smooth iframe {
+  pointer-events: none;
+}
+
+/* ── Hero entrance: pure CSS so it starts on first paint (good for LCP) ──── */
+@keyframes rise {
+  from {
+    transform: translate3d(0, 108%, 0);
+  }
+}
+@keyframes wipe-up {
+  from {
+    clip-path: inset(100% 0 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes curtain-up {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(0, -101%, 0);
+  }
+}
+@keyframes settle {
+  from {
+    transform: scale(1.2);
+  }
+}
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+}
+@keyframes grow-x {
+  from {
+    width: 0;
+  }
+}
+@keyframes scroll-cue {
+  from {
+    transform: translateX(-110%);
+  }
+  to {
+    transform: translateX(320%);
+  }
+}
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.a-rise {
+  animation: rise 1.15s var(--ease-editorial) both;
+  animation-delay: var(--d, 0ms);
+}
+.a-wipe {
+  animation: wipe-up 1.45s var(--ease-editorial) both;
+  animation-delay: var(--d, 0ms);
+}
+.a-curtain {
+  animation: curtain-up 1.45s var(--ease-editorial) both;
+  animation-delay: var(--d, 0ms);
+}
+.a-settle {
+  animation: settle 2s var(--ease-editorial) both;
+  animation-delay: var(--d, 0ms);
+}
+.a-fade {
+  animation: fade-up 1s var(--ease-editorial) both;
+  animation-delay: var(--d, 0ms);
+}
+.a-grow {
+  animation: grow-x 1.2s var(--ease-editorial) both;
+  animation-delay: var(--d, 0ms);
+}
+.a-spin {
+  animation: spin-slow 24s linear infinite;
+}
+
+/* Playful letter "wave" on hover (Journey words) */
+@keyframes bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-0.12em) rotate(-3deg);
+  }
+}
+.wave:hover .wave-l {
+  animation: bob 0.6s var(--ease-editorial);
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+
+/* ── Scroll reveals ─────────────────────────────────────────────────────────
+   Server-rendered markup with data-reveal="…"; <RevealObserver/> adds .is-in
+   when it scrolls into view. Delays come from --delay (and --i for staggers). */
+[data-reveal="fade"] {
+  opacity: 0;
+  transform: translate3d(0, 22px, 0);
+  transition:
+    opacity 0.95s var(--ease-editorial),
+    transform 0.95s var(--ease-editorial);
+  transition-delay: var(--delay, 0ms);
+}
+[data-reveal="fade"].is-in {
+  opacity: 1;
+  transform: none;
+}
+
+/* Headings: each word rises out of its own mask */
+.rw-mask {
+  display: inline-block;
+  overflow: hidden;
+  padding-bottom: 0.14em;
+  margin-bottom: -0.14em;
+  vertical-align: top;
+}
+.rw {
+  display: inline-block;
+  transform: translate3d(0, 112%, 0);
+  transition: transform 1.05s var(--ease-editorial);
+  transition-delay: calc(var(--delay, 0ms) + var(--i, 0) * 55ms);
+}
+[data-reveal="words"].is-in .rw {
+  transform: none;
+}
+
+/* Images: clip-path wipe upwards + slow settle */
+[data-reveal="image"] {
+  clip-path: inset(100% 0 0 0);
+  transition: clip-path 1.4s var(--ease-editorial) var(--delay, 0ms);
+}
+[data-reveal="image"] .ri-inner {
+  transform: scale(1.18);
+  transition: transform 1.9s var(--ease-editorial) var(--delay, 0ms);
+}
+[data-reveal="image"].is-in {
+  clip-path: inset(0 0 0 0);
+}
+[data-reveal="image"].is-in .ri-inner {
+  transform: none;
+}
+
+/* Journey: letters spring up (overshoot easing), stickers pop in tilted */
+[data-reveal="letters"] .rl {
+  display: inline-block;
+  transform: translate3d(0, 105%, 0) rotate(14deg);
+  transform-origin: bottom;
+  transition: transform 0.95s var(--ease-spring);
+  transition-delay: calc(var(--i, 0) * 35ms);
+}
+[data-reveal="letters"].is-in .rl {
+  transform: none;
+}
+[data-reveal="sticker"] {
+  opacity: 0;
+  transform: rotate(calc(var(--tilt, 0deg) * 3.5)) scale(0.55);
+  transition:
+    transform 1s var(--ease-spring),
+    opacity 0.5s var(--ease-editorial);
+}
+[data-reveal="sticker"].is-in {
+  opacity: 1;
+  transform: rotate(var(--tilt, 0deg)) scale(1);
+}
+[data-reveal="sticker"].is-in:hover {
+  transform: rotate(calc(var(--tilt, 0deg) * -0.6)) scale(1.04);
+  transition-duration: 0.6s;
+}
+[data-reveal="node"] {
+  transform: scale(0.6);
+  background-color: var(--color-beige);
+  transition:
+    transform 0.5s var(--ease-editorial),
+    background-color 0.5s var(--ease-editorial);
+}
+[data-reveal="node"].is-in {
+  transform: scale(1);
+  background-color: var(--color-heritage);
+}
+
+/* Vision: "a school launchpad" strike-through */
+[data-reveal="strike"] {
+  transform: scaleX(0);
+  transition: transform 0.9s var(--ease-editorial) 0.35s;
+}
+[data-reveal="strike"].is-in {
+  transform: scaleX(1);
+}
+
+/* Vision statement: words brighten with scroll progress (--vp, 0→1) */
+.sw {
+  opacity: calc(var(--min, 0.55) + (1 - var(--min, 0.55)) * clamp(0, var(--vp, 0) * var(--n, 1) - var(--i, 0), 1));
+}
+
+/* ── Parallax: CSS scroll-driven animations (progressive enhancement) ──────
+   Browsers without animation-timeline simply show the images still. */
+@keyframes parallax-y {
+  from {
+    transform: translate3d(0, calc(var(--px, 6%) * -1), 0);
+  }
+  to {
+    transform: translate3d(0, var(--px, 6%), 0);
+  }
+}
+@keyframes parallax-zoom {
+  from {
+    transform: translate3d(0, -6%, 0) scale(1.18);
+  }
+  to {
+    transform: translate3d(0, 6%, 0) scale(1);
+  }
+}
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .parallax-y {
+      animation: parallax-y linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+    .parallax-zoom {
+      animation: parallax-zoom linear both;
+      animation-timeline: view();
+      animation-range: cover;
+    }
+  }
+}
+
+/* ── Render below-the-fold sections lazily ─────────────────────────────────
+   The browser skips layout/paint for offscreen sections until they come near
+   the viewport, so the first screen is ready sooner on phones. Before an
+   anchor jump, html.cv-off renders everything so the jump lands exactly
+   (see lib/smooth-scroll.ts). */
+.cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1400px;
+}
+.cv-off .cv-auto {
+  content-visibility: visible;
+}
+
+/* ── Reduced motion: everything becomes instant and still ──────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Scroll-linked effects are motion values (inline styles), so they are
+     neutralised here rather than in render, which keeps hydration identical. */
+  [data-parallax] {
+    transform: none !important;
+  }
+  [data-scroll-word] {
+    opacity: 1 !important;
+  }
+  [data-thread] {
+    clip-path: none !important;
+  }
+  [data-needle] {
+    display: none;
+  }
+  [data-reveal],
+  [data-reveal] .rw,
+  [data-reveal] .rl,
+  [data-reveal] .ri-inner {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+  [data-reveal="sticker"] {
+    transform: rotate(var(--tilt, 0deg)) !important;
+  }
+  [data-reveal="node"] {
+    background-color: var(--color-heritage) !important;
+  }
+}
+
+
+/* ═════════════════════════════════════════════════════════════════════════
+   LOUD DIRECTION (hero lab, then the rebuild)
+   ═════════════════════════════════════════════════════════════════════════ */
+
+/* Extra-condensed black poster face */
+@utility font-poster {
+  font-family: var(--font-poster);
+  font-weight: 900;
+  font-stretch: 62%;
+  font-variation-settings: "wdth" 62;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  line-height: 0.82;
+}
+/* Moody, saturated, high-contrast editorial grade */
+@utility grade-loud {
+  filter: contrast(1.12) saturate(1.12) brightness(0.96);
+}
+
+/* Visible grain, tinted (used over hero images) */
+.grain-mustard::after {
+  content: "";
+  position: absolute;
+  inset: -50%;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.85  0 0 0 0 0.65  0 0 0 0 0.39  0 0 0 1.1 -0.35'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.32;
+  mix-blend-mode: overlay;
+  animation: grain-shift 0.9s steps(4) infinite;
+}
+@keyframes grain-shift {
+  0% { transform: translate3d(0, 0, 0); }
+  25% { transform: translate3d(-4%, 3%, 0); }
+  50% { transform: translate3d(3%, -5%, 0); }
+  75% { transform: translate3d(-2%, -2%, 0); }
+  100% { transform: translate3d(0, 0, 0); }
+}
+
+/* Film burn: a warm light leak that breathes in one corner */
+.film-burn {
+  background:
+    radial-gradient(40% 55% at 92% 8%, rgba(255, 120, 40, 0.55), transparent 70%),
+    radial-gradient(30% 40% at 4% 96%, rgba(187, 40, 35, 0.45), transparent 70%);
+  mix-blend-mode: screen;
+  animation: burn 7s ease-in-out infinite alternate;
+}
+@keyframes burn {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+
+/* Ajrak block-print tile: indigo ground, maroon + off-white stars, dotted frame */
+.ajrak {
+  background-color: var(--color-indigo);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%23214276'/%3E%3Cpath d='M32 10l5.5 11.5L50 16l-5.5 12.5L56 32l-11.5 5.5L50 48l-12.5-5.5L32 54l-5.5-11.5L14 48l5.5-12.5L8 32l11.5-5.5L14 16l12.5 5.5z' fill='%23630E13'/%3E%3Cpath d='M32 20l3.4 7.2 7.6-3.4-3.4 7.6 7.2 3.4-7.2 3.4 3.4 7.6-7.6-3.4L32 49l-3.4-7.2-7.6 3.4 3.4-7.6L17 34.2l7.2-3.4-3.4-7.6 7.6 3.4z' fill='%23F6F2EA'/%3E%3Ccircle cx='32' cy='32' r='4' fill='%23630E13'/%3E%3Cg fill='%23F6F2EA'%3E%3Ccircle cx='4' cy='4' r='2.2'/%3E%3Ccircle cx='60' cy='4' r='2.2'/%3E%3Ccircle cx='4' cy='60' r='2.2'/%3E%3Ccircle cx='60' cy='60' r='2.2'/%3E%3Ccircle cx='32' cy='2' r='1.2'/%3E%3Ccircle cx='32' cy='62' r='1.2'/%3E%3Ccircle cx='2' cy='32' r='1.2'/%3E%3Ccircle cx='62' cy='32' r='1.2'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 64px 64px;
+}
+.ajrak-lg {
+  background-size: 96px 96px;
+}
+
+/* Sticker look: thick paper border + lifted shadow */
+.sticker {
+  box-shadow:
+    0 0 0 4px var(--color-offwhite),
+    0 18px 30px -12px rgba(0, 0, 0, 0.55);
+}
+/* Washi tape with zig-zag torn ends */
+.tape {
+  background: rgba(234, 226, 204, 0.88);
+  clip-path: polygon(0 8%, 3% 0, 6% 10%, 9% 0, 91% 0, 94% 10%, 97% 0, 100% 8%, 100% 92%, 97% 100%, 94% 90%, 91% 100%, 9% 100%, 6% 90%, 3% 100%, 0 92%);
+  box-shadow: 0 6px 14px -6px rgba(0, 0, 0, 0.4);
+}
+
+/* ── Entrance keyframes for the lab heroes ───────────────────────────────
+   Hero animations wait for the intro curtain (--intro-delay); when the intro
+   is skipped (seen this session / reduced motion) they start immediately. */
+:root {
+  --intro-delay: 2300ms;
+}
+.intro-skip {
+  --intro-delay: 0ms;
+}
+.intro-skip .bb-intro {
+  display: none;
+}
+@keyframes rise-in {
+  from { transform: translate3d(0, 105%, 0); }
+}
+@keyframes slow-zoom {
+  from { transform: scale(1.22); }
+  to { transform: scale(1.02); }
+}
+@keyframes pop-in {
+  0% { transform: translate3d(0, 30px, 0) rotate(calc(var(--r, 0deg) - 18deg)) scale(0.4); opacity: 0; }
+  100% { transform: rotate(var(--r, 0deg)) scale(1); opacity: 1; }
+}
+@keyframes rise-fade {
+  from { opacity: 0; transform: translate3d(0, 40px, 0); }
+}
+@keyframes cut-up {
+  from { transform: translate3d(0, 18%, 0) scale(1.04); opacity: 0; }
+}
+.l-rise {
+  animation: rise-in 1.4s var(--ease-cine) both;
+  animation-delay: calc(var(--intro-delay) + var(--d, 0ms));
+}
+.l-zoom {
+  animation: slow-zoom 9s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: calc(var(--intro-delay) - 1200ms);
+}
+.l-pop {
+  animation: pop-in 0.9s var(--ease-spring) both;
+  animation-delay: calc(var(--intro-delay) + var(--d, 0ms));
+}
+.l-fade {
+  animation: rise-fade 1s var(--ease-cine) both;
+  animation-delay: calc(var(--intro-delay) + var(--d, 0ms));
+}
+.l-cut {
+  animation: cut-up 1.6s var(--ease-cine) both;
+  animation-delay: calc(var(--intro-delay) + var(--d, 0ms));
+}
+.l-spin {
+  animation: spin-slow 16s linear infinite;
+}
+
+/* ── Intro: maroon screen, "بلو بازار" written right-to-left, curtain splits ─ */
+@keyframes write-rtl {
+  from { clip-path: inset(-20% 0 -20% 100%); }
+  to { clip-path: inset(-20% 0 -20% 0); }
+}
+@keyframes intro-out-left {
+  to { transform: translate3d(-101%, 0, 0); }
+}
+@keyframes intro-out-right {
+  to { transform: translate3d(101%, 0, 0); }
+}
+@keyframes intro-gone {
+  to { visibility: hidden; }
+}
+@keyframes intro-word-out {
+  to { opacity: 0; transform: scale(1.08); filter: blur(6px); }
+}
+.bb-intro {
+  animation: intro-gone 0s linear 3.2s forwards;
+}
+.bb-intro-half-l {
+  animation: intro-out-left 1.1s var(--ease-cine) 1.9s forwards;
+}
+.bb-intro-half-r {
+  animation: intro-out-right 1.1s var(--ease-cine) 1.9s forwards;
+}
+.bb-intro-word {
+  animation:
+    write-rtl 1.3s var(--ease-cine) 0.15s both,
+    intro-word-out 0.5s var(--ease-cine) 1.75s forwards;
+}
+.bb-intro-sub {
+  animation:
+    rise-fade 0.8s var(--ease-cine) 0.9s both,
+    intro-word-out 0.5s var(--ease-cine) 1.75s forwards;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bb-intro {
+    display: none;
+  }
+  .grain-mustard::after,
+  .film-burn {
+    animation: none !important;
+  }
+}
+
+/* Hero C: slot-machine word swap + cursor image trail */
+@keyframes swap-in {
+  from { transform: translate3d(0, 105%, 0) rotate(6deg); }
+}
+@keyframes swap-out {
+  to { transform: translate3d(0, -105%, 0) rotate(-6deg); }
+}
+.swap-in > span {
+  animation: swap-in 0.75s var(--ease-cine) both;
+  animation-delay: calc(var(--k, 0) * 40ms + var(--intro-delay, 0ms) * 0);
+}
+.swap-out > span {
+  animation: swap-out 0.6s var(--ease-cine) both;
+  animation-delay: calc(var(--k, 0) * 30ms);
+}
+.swap-caption {
+  animation: rise-fade 0.6s var(--ease-cine) both;
+}
+.trail-img {
+  position: absolute;
+  z-index: 1;
+  width: clamp(130px, 15vw, 250px);
+  aspect-ratio: 3 / 4;
+  object-fit: cover;
+  pointer-events: none;
+  translate: -50% -50%;
+  filter: contrast(1.1) saturate(1.15);
+  box-shadow: 0 24px 50px -20px rgba(0, 0, 0, 0.7);
+  animation: trail 1.6s var(--ease-cine) forwards;
+}
+@keyframes trail {
+  0% { transform: scale(0.3) rotate(calc(var(--tr) * 3)); clip-path: inset(50% 50% 50% 50%); }
+  22% { transform: scale(1) rotate(var(--tr)); clip-path: inset(0 0 0 0); }
+  70% { transform: scale(1) rotate(var(--tr)); clip-path: inset(0 0 0 0); opacity: 1; }
+  100% { transform: scale(0.85) rotate(var(--tr)); clip-path: inset(0 0 100% 0); opacity: 0; }
 }
